@@ -70,6 +70,14 @@ jobs:
           for f in *.exe; do mv "$f" PUNK-HUB-Setup.exe; done
           for f in *.apk; do mv "$f" PUNK-HUB.apk; done
           ls -la
+      # garante APK de verdade (nao ZIP) e EXE antes de publicar na Release
+      - run: |
+          cd arquivos
+          test -s PUNK-HUB.apk && test -s PUNK-HUB-Setup.exe
+          test "$(head -c 2 PUNK-HUB.apk)" = "PK" && unzip -l PUNK-HUB.apk | grep -q AndroidManifest.xml
+          unzip -l PUNK-HUB.apk | grep -q "assets/public/index.html"
+          if unzip -l PUNK-HUB.apk | grep -qi "\.zip$"; then echo "APK contem ZIP inesperado"; exit 1; fi
+          echo "APK valido"
       - env:
           GH_TOKEN: ${{ github.token }}
           V: ${{ needs.versao.outputs.v }}
