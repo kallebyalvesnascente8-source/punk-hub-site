@@ -16,5 +16,6 @@ contextBridge.exposeInMainWorld('punk',{
  imgUrl:p=>'punkimg://f/'+b64u(String(p)),
  pickMusicDir:()=>inv('pickMusicDir'),
  musicDir:()=>inv('musicDir'),
+ downloadsDir:()=>inv('downloadsDir'),
  listAudio:d=>inv('listAudio',String(d)),
  audioUrl:p=>'punkaudio://f/'+b64u(String(p))});

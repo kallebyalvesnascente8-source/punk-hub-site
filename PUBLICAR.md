@@ -16,7 +16,7 @@ O app descobre sozinho de qual repositório vem, então não há nada para confi
 ## Versões novas
 
 1. Edite o que quiser em `hub/src`.
-2. Rode `node tools/lancar.js 1.2.0` (com o número da nova versão). Ele atualiza tudo e mostra 4 comandos para colar.
+2. Rode `node tools/lancar.js 1.3.0` (com o número da nova versão, sempre maior que a atual). Ele atualiza tudo, roda os testes e mostra os comandos para colar.
 3. O GitHub compila e publica. Quem já tem o app recebe o aviso de atualização em até um dia (ou ao tocar em
    Configurações > Sistema > Verificar atualizações).
 
@@ -43,3 +43,25 @@ Para ligar (uma vez só):
    endereço, sem configurar nada. Para testar fora do GitHub, abra `site/index.html` com `?repo=usuario/repositorio`.
 
 O repositório precisa ser público para o site conseguir ler os Releases sem login.
+
+## Baixar o APK (sem ZIP)
+
+O APK que o site oferece vem do Release, com o nome fixo `PUNK-HUB.apk`, e é anexado direto, não dentro de ZIP.
+Antes de publicar, o workflow confere que o arquivo é um APK de verdade (contém `AndroidManifest.xml` e o app). Se não for, a
+publicação para com erro. Atenção: na aba Actions, os "Artifacts" sempre baixam como ZIP (é assim que o GitHub funciona).
+Baixe sempre pelo Release ou pelo site. O app pede Android 7 ou mais novo.
+
+## PUNK Music (site complementar)
+
+Fica em `site/musica/` e é publicado junto com o site, no endereço `.../NOME-DO-REPOSITORIO/musica/`.
+Busca em fontes livres (Jamendo e Internet Archive, só com licença Creative Commons ou domínio público). Sem anúncios.
+
+Configuração, em `site/musica/config.js`:
+1. `JAMENDO_CLIENT_ID`: crie grátis em https://devportal.jamendo.com (uso não comercial). Sem ele, a busca usa só o Internet Archive.
+2. `SPOTIFY_CLIENT_ID` (opcional): em https://developer.spotify.com/dashboard crie um app e cadastre como Redirect URI
+   `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/musica/`. Quem preferir pode colar o próprio Client ID na aba Spotify.
+   Regras atuais do Spotify: apps em modo de desenvolvimento exigem conta Premium do dono, têm no máximo 5 usuários autorizados
+   e só leem playlists do próprio usuário ou colaborativas. Se a playlist for bloqueada, a aba aceita a lista colada.
+3. Salve, envie para o GitHub: o site se publica sozinho.
+
+O Client ID do Jamendo e do Spotify não são segredos (ficam visíveis no site por natureza). Nunca coloque Client Secret.

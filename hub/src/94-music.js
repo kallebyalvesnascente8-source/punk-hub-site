@@ -240,7 +240,7 @@ function musicView(){
  <input type="search" data-i="musearch" value="${esc(MU.search)}" placeholder="Pesquisar músicas, artistas, álbuns" aria-label="Pesquisar na biblioteca" style="flex:1;min-width:140px">
  ${v==='all'?`<select data-i="musort" aria-label="Ordenar">${optH({add:'Recentes',title:'Título',artist:'Artista',album:'Álbum'},MU.sort)}</select>`:''}</div>
  <div class="fl muhd"${v==='radio'||v==='spt'?' hidden':''}>${v==='all'||v==='albums'?`<button class="p" data-a="muimp">Importar músicas</button><input type="file" id="muf" accept=".mp3,.wav,.flac,.ogg,audio/mpeg,audio/wav,audio/flac,audio/ogg" multiple hidden data-i="mufile">
- ${PXM?`<button data-a="mudir">Adicionar pasta</button><button data-a="mumusic" title="Procura músicas na pasta Músicas do Windows">Pasta Músicas</button>${m.dirs.length?`<button data-a="muscan" title="Procura músicas novas e tira as que sumiram">Atualizar pastas</button>`:''}`:(MOB?'':`<button data-a="mudir">Importar pasta</button><input type="file" id="mud" webkitdirectory multiple hidden data-i="mudirf">`)}`:''}
+ ${PXM?`<button data-a="mudir">Adicionar pasta</button><button data-a="mumusic" title="Procura músicas na pasta Músicas do Windows">Pasta Músicas</button><button data-a="mudown" title="Procura músicas baixadas na pasta Downloads do Windows">Pasta Downloads</button>${m.dirs.length?`<button data-a="muscan" title="Procura músicas novas e tira as que sumiram">Atualizar pastas</button>`:''}`:(MOB?'':`<button data-a="mudir">Importar pasta</button><input type="file" id="mud" webkitdirectory multiple hidden data-i="mudirf">`)}`:''}
  ${L.length&&v!=='albums'?`<button class="p" data-a="muall" data-v="0">Tocar</button><button data-a="muall" data-v="1">Aleatório</button>`:''}
  ${v==='queue'&&MU.q.length?`<button data-a="muqclr">Limpar fila</button>`:''}
  ${pl?`<input data-i="muplren" value="${esc(pl.n)}" maxlength="40" aria-label="Renomear playlist" size="14"><button data-a="mupldel" class="${MU.arm===pl.id?'on':''}">${MU.arm===pl.id?'Confirmar exclusão':'Excluir playlist'}</button>`:''}
@@ -313,7 +313,7 @@ Object.assign(A,{
  mupldel:()=>{const id=MU.view.slice(3);if(MU.arm!==id){MU.arm=id;ren();return}const m=muM();m.pls=m.pls.filter(p=>p.id!==id);MU.arm='';MU.view='all';save();ren()},
  mumore:()=>{MU.n+=100;muListPaint()},
  muimp:()=>$('#muf').click(),
- mudir:()=>PXM?muAddDir(()=>PXM.pickMusicDir()):$('#mud').click(),mumusic:()=>muAddDir(()=>PXM.musicDir()),
+ mudir:()=>PXM?muAddDir(()=>PXM.pickMusicDir()):$('#mud').click(),mumusic:()=>muAddDir(()=>PXM.musicDir()),mudown:()=>PXM.downloadsDir?muAddDir(()=>PXM.downloadsDir()):toast('Atualize o app Windows para usar esta pasta.'),
  muscan:()=>muScan(),
  mumute:()=>{MU.a.muted=!MU.a.muted;muPaint()}});
 Object.assign(I,{

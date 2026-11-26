@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PUNK Music | Músicas livres para o PUNK HUB</title>
+<meta name="description" content="Busque músicas pelo nome ou artista, ouça prévias e baixe MP3 de fontes autorizadas, sem anúncios. Importe para o PUNK HUB.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../img/lebinho.jpg">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:"Space Grotesk",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;background:#0b0b0c;color:#fff;min-height:100vh;overflow-x:hidden}
+a{color:inherit}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
+.bg{position:fixed;inset:0;background:linear-gradient(#cfcfcf 0%,#9a9a9a 38%,#4a4a4a 52%,#0a0a0a 70%);z-index:0}
+.bg svg{position:absolute;bottom:0;width:100%;height:62%}
+.fog{position:fixed;inset:0;z-index:1;background:radial-gradient(120% 40% at 50% 85%,rgba(210,210,210,.35),transparent 70%);pointer-events:none}
+canvas{position:fixed;inset:0;z-index:1;pointer-events:none}
+main{position:relative;z-index:5;display:flex;justify-content:center;padding:32px 14px 120px}
+.card{width:min(860px,100%);background:#000;border-radius:14px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.6)}
+header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+header img{width:56px;height:56px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #111}
+h1{font-size:26px;letter-spacing:-.02em}.sub{color:#00ff88;font-weight:700;font-size:12px;letter-spacing:.14em}
+header a.back{margin-left:auto;font-size:13px;color:#aaa}
+.tabs{display:flex;gap:6px;border-bottom:1px solid #1b1b1b;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;font-weight:700;color:#aaa}
+.tabs button[aria-selected=true]{color:#fff;border-color:#00ff88}
+.tabs button:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #00ff88;outline-offset:2px}
+.panel[hidden]{display:none}
+.search{display:flex;gap:8px;margin-bottom:6px}
+input[type=search],input[type=text],textarea{width:100%;background:#0c0c0c;border:1px solid #232323;border-radius:10px;padding:11px 12px}
+textarea{resize:vertical;min-height:110px}
+.btn{background:#101010;border:1px solid #2a2a2a;border-radius:10px;padding:8px 13px;font-weight:600;text-decoration:none;display:inline-block}
+.btn:hover{border-color:#00ff88}.btn.p{background:#00ff88;color:#04140c;border-color:transparent}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.note{color:#9a9a9a;font-size:13px;line-height:1.5;margin:6px 0 10px}
+.src{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.chip{border:1px solid #222;border-radius:999px;padding:3px 11px;font-size:12px;color:#bbb}.chip.on{border-color:#00ff8888;color:#00ff88}.chip.bad{border-color:#e5484d88;color:#ff8a8d}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px;border-radius:10px}
+.row:hover{background:#0a0a0a}
+.cv{width:56px;height:56px;border-radius:8px;background:#151515;object-fit:cover;display:block}
+.tt b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tt small{color:#9a9a9a;font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt .lic{color:#6fcf97}.tt .st{color:#00ff88}.tt .er{color:#ff8a8d}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.empty{padding:26px 8px;text-align:center;color:#9a9a9a}
+.player{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#050505;border-top:1px solid #1d1d1d;padding:10px 14px;display:none;align-items:center;gap:12px}
+.player.on{display:flex}.player .nm{font-size:13px;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player input[type=range]{flex:2;accent-color:#00ff88}
+.step{border:1px solid #1d1d1d;border-radius:12px;padding:14px;margin-bottom:10px;background:#070707}
+.step.cur{border-color:#00ff88}.step.done{opacity:.6}
+.step h3{font-size:15px;margin-bottom:4px;display:flex;gap:10px;align-items:center}.step p{color:#cfcfcf;font-size:14px;line-height:1.55}
+.num{width:24px;height:24px;border-radius:50%;background:#1a1a1a;display:grid;place-items:center;font-size:12px;flex:none}.cur .num{background:#00ff88;color:#04140c;font-weight:700}
+.bar{height:5px;border-radius:5px;background:#1a1a1a;margin:6px 0 14px}.bar i{display:block;height:100%;border-radius:5px;background:#00ff88;transition:width .25s}
+.seg{display:inline-flex;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;margin-bottom:12px}.seg button{background:none;border:0;padding:7px 14px;font-weight:600}.seg button[aria-pressed=true]{background:#00ff88;color:#04140c}
+code{background:#111;border:1px solid #222;border-radius:6px;padding:1px 6px;font-size:12px;word-break:break-all}
+@media(max-width:600px){.row{grid-template-columns:48px 1fr}.cv{width:48px;height:48px}.acts{grid-column:1/-1;justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}canvas{display:none}}
+</style>
+</head>
+<body>
+<div class="bg"><svg viewBox="0 0 1200 500" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1a1a"/><stop offset="1" stop-color="#000"/></linearGradient></defs><path fill="url(#g)" d="M0 500V260l20-40 18 30 22-70 20 60 24-50 20 40 26-90 24 80 22-50 24 60 20-30 30 70 26-60 22 40 28-80 24 70 20-40 30 60 22-50 26 40V500z"/><path fill="#050505" d="M700 500V300l20-40 18 40 22-80 20 70 24-60 20 50 26-100 24 90 22-60 24 70 20-40 30 80 26-70 22 50 28-90 24 80 20-50 30 70 22-60 26 50 28-40 30 70 20-30V500z"/></svg></div>
+<div class="fog"></div><canvas id="rain" aria-hidden="true"></canvas>
+<main><div class="card">
+<header><img src="../img/lebinho.jpg" alt="" width="56" height="56"><div><h1>PUNK Music</h1><div class="sub">PARA O PUNK HUB</div></div><a class="back" href="../">Voltar ao PUNK HUB</a></header>
+<div class="tabs" role="tablist"><button role="tab" id="t-busca" aria-selected="true" aria-controls="p-busca">Buscar músicas</button><button role="tab" id="t-spotify" aria-selected="false" aria-controls="p-spotify">Playlist do Spotify</button><button role="tab" id="t-tut" aria-selected="false" aria-controls="p-tut">Como importar</button></div>
+
+<section class="panel" id="p-busca" role="tabpanel" aria-labelledby="t-busca">
+<form class="search" id="f"><input type="search" id="q" placeholder="Nome da música ou artista" aria-label="Buscar por nome da música ou artista" autocomplete="off"><button class="btn p" type="submit">Buscar</button></form>
+<div class="src" id="src"></div>
+<p class="note">Só aparecem músicas com licença livre (Creative Commons ou domínio público) cujo autor permite o download. Sem anúncios e sem redirecionamentos. Músicas comerciais, como as do Spotify, não são oferecidas aqui.</p>
+<div id="res"><div class="empty">Digite um nome e toque em Buscar.</div></div>
+</section>
+
+<section class="panel" id="p-spotify" role="tabpanel" aria-labelledby="t-spotify" hidden>
+<p class="note">Leia uma playlist do Spotify pela integração oficial, ou cole os nomes. O site procura cada faixa nas fontes livres e gera um arquivo de lista para o PUNK HUB casar com as músicas que você já tem.</p>
+<div class="step"><h3>Entrar com o Spotify (opcional)</h3>
+<p>Informe o Client ID do seu app gratuito em <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer">developer.spotify.com/dashboard</a> e cadastre este Redirect URI no app: <code id="ru"></code> <button class="btn" id="cru" type="button">Copiar</button></p>
+<p class="note">Regras atuais do Spotify: apps em modo de desenvolvimento exigem conta Premium de quem criou o app, aceitam poucos usuários autorizados e só leem playlists suas ou colaborativas.</p>
+<div class="search"><input type="text" id="cid" placeholder="Client ID do Spotify" aria-label="Client ID do Spotify" autocomplete="off"><button class="btn p" id="slogin" type="button">Entrar com o Spotify</button></div>
+<div id="spl"></div></div>
+<div class="step"><h3>Ou cole os nomes</h3><p>Uma música por linha, no formato <code>Artista - Música</code>.</p>
+<textarea id="paste" aria-label="Lista de músicas" placeholder="Neon Trio - Aurora Boreal"></textarea><div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="btn p" id="pgo" type="button">Usar esta lista</button></div></div>
+<div id="tl"></div>
+</section>
+
+<section class="panel" id="p-tut" role="tabpanel" aria-labelledby="t-tut" hidden>
+<div class="seg" role="group" aria-label="Sistema"><button id="os-win" aria-pressed="false">Windows</button><button id="os-and" aria-pressed="false">Android</button></div>
+<div class="bar"><i id="pb" style="width:0"></i></div>
+<div id="steps"></div>
+<div class="acts" style="justify-content:flex-start"><button class="btn" id="treset" type="button">Recomeçar</button></div>
+</section>
+</div></main>
+<div class="player" id="pl" role="region" aria-label="Prévia"><button class="btn p" id="ppp" type="button">Pausar</button><span class="nm" id="pnm"></span><input type="range" id="pseek" min="0" max="1000" value="0" aria-label="Posição"><button class="btn" id="pcl" type="button" aria-label="Fechar prévia">Fechar</button></div>
+<audio id="au" preload="none"></audio>
+<script src="config.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)},CFG=window.PUNK_MUSIC||{},LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},del:function(k){try{localStorage.removeItem(k)}catch(e){}}};
+function h(t,a,k){var e=document.createElement(t);for(var x in a||{}){if(x==="class")e.className=a[x];else if(x==="text")e.textContent=a[x];else e.setAttribute(x,a[x])}(k||[]).forEach(function(c){if(c)e.appendChild(typeof c==="string"?document.createTextNode(c):c)});return e}
+function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\(.*?\)|\[.*?\]/g," ").replace(/[^a-z0-9]+/g," ").trim()}
+function clean(n){return String(n).replace(/[\\\/:*?"<>|\x00-\x1f]/g," ").replace(/\s+/g," ").trim().slice(0,120)||"musica"}
+function tm(s){s=Math.round(+s||0);return s?Math.floor(s/60)+":"+String(s%60).padStart(2,"0"):""}
+function okUrl(u,re){return typeof u==="string"&&re.test(u)}
+var JAM=/^https:\/\/[\w.-]*jamendo\.com\//,IAU=/^https:\/\/[\w.-]*archive\.org\//;
+/* ---------- abas ---------- */
+var TABS=["busca","spotify","tut"];
+function tab(n){TABS.forEach(function(t){var on=t===n;$("t-"+t).setAttribute("aria-selected",on);$("p-"+t).hidden=!on});if(n==="tut")tutRender()}
+TABS.forEach(function(t){$("t-"+t).onclick=function(){tab(t)}});
+/* ---------- fontes livres ---------- */
+var JID=String(CFG.JAMENDO_CLIENT_ID||"").trim();
+function srcChips(st){var s=$("src");s.innerHTML="";[["jamendo","Jamendo"+(JID?"":" (desligado)")],["ia","Internet Archive"]].forEach(function(x){var c=h("span",{class:"chip"+(st&&st[x[0]]==="bad"?" bad":JID||x[0]!=="jamendo"?" on":""),text:x[1]+(st&&st[x[0]]==="bad"?": sem resposta":"")});s.appendChild(c)})}
+srcChips();
+function get(url,sig){return fetch(url,{signal:sig,headers:{accept:"application/json"}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+function sJamendo(q,sig){
+ if(!JID)return Promise.resolve([]);
+ return get("https://api.jamendo.com/v3.0/tracks/?client_id="+encodeURIComponent(JID)+"&format=json&limit=20&imagesize=200&search="+encodeURIComponent(q),sig).then(function(j){
+  return(j.results||[]).filter(function(t){return t&&t.audiodownload_allowed&&okUrl(t.audiodownload,JAM)&&okUrl(t.audio,JAM)}).map(function(t){return{src:"jamendo",sid:"j"+t.id,title:String(t.name||"Sem título"),artist:String(t.artist_name||""),album:String(t.album_name||""),cover:okUrl(t.image,JAM)?t.image:"",preview:t.audio,dl:t.audiodownload,dur:+t.duration||0,lic:okUrl(t.license_ccurl,/^https?:\/\/creativecommons\.org\//)?t.license_ccurl:"",from:"Jamendo"}})})}
+function sIA(q,sig){
+ var w=q.replace(/["\\()]/g," ").trim().slice(0,100),p=new URLSearchParams({q:"(title:("+w+") OR creator:("+w+")) AND mediatype:audio AND (licenseurl:*creativecommons* OR licenseurl:*publicdomain*)",rows:"15",output:"json"});["identifier","title","creator","licenseurl"].forEach(function(f){p.append("fl[]",f)});
+ return get("https://archive.org/advancedsearch.php?"+p,sig).then(function(j){
+  return((j.response||{}).docs||[]).filter(function(d){return /^[\w.-]{1,100}$/.test(d.identifier||"")}).map(function(d){var one=function(v){return String(Array.isArray(v)?v[0]:v||"")};
+   return{src:"ia",sid:"i"+d.identifier,id:d.identifier,title:one(d.title)||d.identifier,artist:one(d.creator),album:"",cover:"https://archive.org/services/img/"+d.identifier,lic:/^https?:\/\//.test(one(d.licenseurl))?one(d.licenseurl):"",from:"Internet Archive"}})})}
+function iaFile(it){
+ if(it.dl)return Promise.resolve(it);
+ return get("https://archive.org/metadata/"+encodeURIComponent(it.id)).then(function(j){
+  var f=(j.files||[]).filter(function(x){return /\.mp3$/i.test(x.name||"")&&+x.size>0&&+x.size<150e6}).sort(function(a,b){return(/VBR/i.test(b.format||"")?1:0)-(/VBR/i.test(a.format||"")?1:0)})[0];
+  if(!f)throw new Error("Esta obra não tem arquivo MP3.");var u="https://archive.org/download/"+encodeURIComponent(it.id)+"/"+f.name.split("/").map(encodeURIComponent).join("/");it.dl=u;it.preview=u;it.size=+f.size;return it})}
+function searchAll(q,sig){
+ var st={};return Promise.all([sJamendo(q,sig).catch(function(e){if(e.name!=="AbortError")st.jamendo="bad";return[]}),sIA(q,sig).catch(function(e){if(e.name!=="AbortError")st.ia="bad";return[]})]).then(function(r){return{list:r[0].concat(r[1]),st:st}})}
+/* ---------- resultados e linhas ---------- */
+var AU=$("au"),cur=null;
+function rowFor(it){
+ var img=h("img",{class:"cv",alt:"",width:"56",height:"56",loading:"lazy"});img.onerror=function(){img.removeAttribute("src");img.style.visibility="hidden"};if(it.cover)img.src=it.cover;
+ var sub=[it.artist,it.album,tm(it.dur)].filter(Boolean).join(" · "),st=h("small",{class:"st",role:"status"}),
+ tt=h("div",{class:"tt"},[h("b",{text:it.title}),h("small",{text:sub||"Artista desconhecido"}),h("small",{class:"lic",text:it.from+(it.lic?" · licença livre":"")}),st]);
+ var pv=h("button",{class:"btn",type:"button",text:"Ouvir prévia"}),dl=h("button",{class:"btn p",type:"button",text:"Baixar MP3"});
+ pv.onclick=function(){preview(it,pv,st)};dl.onclick=function(){download(it,dl,st)};
+ var acts=h("div",{class:"acts"},[pv,dl]);if(it.lic){var a=h("a",{class:"btn",href:it.lic,target:"_blank",rel:"noopener noreferrer",text:"Licença"});acts.appendChild(a)}
+ return h("div",{class:"row"},[img,tt,acts])}
+function msg(st,t,bad){st.textContent=t;st.className=bad?"er":"st"}
+var ctl=null,last="";
+function doSearch(q){
+ q=q.trim();if(q.length<2){return}if(ctl)ctl.abort();ctl=new AbortController();last=q;
+ var res=$("res");res.innerHTML="";res.appendChild(h("div",{class:"empty",text:"Buscando..."}));
+ searchAll(q,ctl.signal).then(function(r){if(q!==last)return;srcChips(r.st);res.innerHTML="";
+  if(!r.list.length){res.appendChild(h("div",{class:"empty",text:r.st.ia==="bad"&&(r.st.jamendo==="bad"||!JID)?"Não foi possível buscar agora. Verifique a internet e tente de novo.":"Nada encontrado em fontes livres para essa busca. Tente outro nome."}));return}
+  r.list.forEach(function(it){res.appendChild(rowFor(it))})})}
+$("f").onsubmit=function(e){e.preventDefault();doSearch($("q").value)};
+/* ---------- prévia ---------- */
+function preview(it,btn,st){
+ if(cur===it.sid&&!AU.paused){AU.pause();return}
+ if(cur===it.sid&&AU.paused){AU.play();return}
+ msg(st,"Carregando prévia...");iaFile(it).then(function(x){cur=it.sid;AU.src=x.preview;$("pnm").textContent=it.title+(it.artist?" · "+it.artist:"");$("pl").classList.add("on");return AU.play()}).then(function(){msg(st,"")}).catch(function(e){msg(st,e&&e.message&&e.message.length<80&&isNaN(e.message)?e.message:"Não foi possível tocar a prévia.",1)})}
+AU.addEventListener("play",function(){$("ppp").textContent="Pausar"});AU.addEventListener("pause",function(){$("ppp").textContent="Tocar"});
+AU.addEventListener("timeupdate",function(){if(document.activeElement!==$("pseek")&&AU.duration>0)$("pseek").value=AU.currentTime/AU.duration*1000});
+$("ppp").onclick=function(){if(AU.paused)AU.play();else AU.pause()};$("pseek").oninput=function(){if(AU.duration>0)AU.currentTime=this.value/1000*AU.duration};
+$("pcl").onclick=function(){AU.pause();AU.removeAttribute("src");cur=null;$("pl").classList.remove("on")};
+/* ---------- download (arquivo direto da fonte, sem intermediários) ---------- */
+function save(blob,name){var a=h("a",{href:URL.createObjectURL(blob),download:name});document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000)}
+function download(it,btn,st){
+ btn.disabled=true;msg(st,"Baixando...");var name=clean((it.artist?it.artist+" - ":"")+it.title)+".mp3";
+ iaFile(it).then(function(x){var c=new AbortController(),t=setTimeout(function(){c.abort()},180000);return fetch(x.dl,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error("http");return r.blob()})})
+ .then(function(b){if(!b.size)throw new Error("vazio");save(new Blob([b],{type:"audio/mpeg"}),name);msg(st,"Baixado: "+name+". Veja em Downloads e importe no PUNK HUB (aba Como importar).")})
+ .catch(function(){ /* sem CORS: abre o arquivo direto da fonte em outra aba, sem passar por terceiros */
+  if(it.dl&&/^https:\/\//.test(it.dl)){window.open(it.dl,"_blank","noopener");msg(st,"Abrimos o arquivo direto da fonte. Se ele tocar em vez de baixar, use o menu da página para salvar como "+name+".")}else msg(st,"Não foi possível baixar agora.",1)})
+ .then(function(){btn.disabled=false})}
+/* ---------- Spotify ---------- */
+var TR=[],SP={token:"",name:"Playlist do Spotify"};
+var REDIR=location.origin+location.pathname;$("ru").textContent=REDIR;
+$("cru").onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(REDIR).then(function(){$("cru").textContent="Copiado"},function(){})};
+var cid=(LS.get("pm-cid")||String(CFG.SPOTIFY_CLIENT_ID||"")).trim();$("cid").value=cid;
+function b64(a){var s="";a.forEach(function(x){s+=String.fromCharCode(x)});return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function rnd(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return b64(Array.from(a))}
+function sha(v){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)).then(function(d){return b64(Array.from(new Uint8Array(d)))})}
+$("slogin").onclick=function(){
+ var id=$("cid").value.trim();if(!/^[a-f0-9]{32}$/i.test(id)){$("spl").textContent="Informe o Client ID do Spotify (32 letras e números).";return}
+ LS.set("pm-cid",id);var v=rnd(64),s=rnd(16);sessionStorage.setItem("pm-v",v);sessionStorage.setItem("pm-s",s);
+ sha(v).then(function(c){location.href="https://accounts.spotify.com/authorize?"+new URLSearchParams({response_type:"code",client_id:id,scope:"playlist-read-private playlist-read-collaborative",redirect_uri:REDIR,code_challenge_method:"S256",code_challenge:c,state:s})})};
+function sp(path){return fetch(path.indexOf("http")===0?path:"https://api.spotify.com/v1"+path,{headers:{authorization:"Bearer "+SP.token}}).then(function(r){if(r.status===401){SP.token="";throw new Error("Sessão do Spotify expirou. Entre de novo.")}if(r.status===403)throw new Error("403");if(!r.ok)throw new Error("O Spotify respondeu "+r.status+".");return r.json()})}
+function callback(){
+ var q=new URLSearchParams(location.search);if(!q.has("code")&&!q.has("error"))return;
+ var code=q.get("code"),err=q.get("error"),st=q.get("state"),v=sessionStorage.getItem("pm-v"),s=sessionStorage.getItem("pm-s");history.replaceState(null,"",location.pathname);tab("spotify");
+ if(err||!code||!st||st!==s||!v){$("spl").textContent=err==="access_denied"?"Você não autorizou o acesso. Nada foi lido.":"Não foi possível concluir o login. Tente de novo.";return}
+ sessionStorage.removeItem("pm-v");sessionStorage.removeItem("pm-s");$("spl").textContent="Entrando...";
+ fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"authorization_code",code:code,redirect_uri:REDIR,client_id:LS.get("pm-cid")||"",code_verifier:v})}).then(function(r){if(!r.ok)throw new Error("token");return r.json()}).then(function(j){SP.token=j.access_token;return lists()}).catch(function(){$("spl").textContent="O Spotify recusou o login. Confira se o Redirect URI cadastrado no app é exatamente o mostrado acima."})}
+function lists(){
+ return sp("/me/playlists?limit=50").then(function(j){var box=$("spl");box.innerHTML="";box.appendChild(h("p",{class:"note",text:"Escolha uma playlist:"}));
+  (j.items||[]).filter(Boolean).forEach(function(p){var b=h("button",{class:"btn",type:"button",text:String(p.name||"Playlist")+(p.tracks&&p.tracks.total!=null?" ("+p.tracks.total+")":"")});b.style.margin="0 6px 6px 0";b.onclick=function(){load(p)};box.appendChild(b)});if(!(j.items||[]).length)box.appendChild(h("p",{class:"note",text:"Nenhuma playlist encontrada nesta conta."}))})}
+function load(p){
+ SP.name=String(p.name||"Playlist do Spotify");$("spl").appendChild(h("p",{class:"note",text:"Lendo "+SP.name+"..."}));var out=[];
+ var page=function(u){return sp(u).then(function(j){(j.items||[]).forEach(function(x){var t=x&&(x.item||x.track);if(t&&t.name&&t.type!=="episode")out.push({title:String(t.name),artist:((t.artists||[])[0]||{}).name||"",cover:((((t.album||{}).images)||[]).slice(-1)[0]||{}).url||""})});if(j.next&&out.length<300)return page(j.next)})};
+ page("/playlists/"+encodeURIComponent(p.id)+"/items?limit=100").catch(function(e){if(e.message==="403"||/^O Spotify respondeu 404/.test(e.message))return page("/playlists/"+encodeURIComponent(p.id)+"/tracks?limit=100");throw e})
+ .then(function(){TR=out.slice(0,300);trRender()}).catch(function(e){$("spl").appendChild(h("p",{class:"note er",text:e.message==="403"?"O Spotify não liberou esta playlist para o seu app (modo de desenvolvimento só lê playlists suas ou colaborativas). Use a lista colada abaixo.":e.message}))})}
+$("pgo").onclick=function(){
+ var L=$("paste").value.split(/\r?\n/).map(function(s){return s.trim()}).filter(Boolean).slice(0,300);if(!L.length)return;SP.name="Lista colada";
+ TR=L.map(function(s){var m=/^(.{1,100}?)\s+[-–]\s+(.{1,100})$/.exec(s);return m?{artist:m[1].trim(),title:m[2].trim(),cover:""}:{artist:"",title:s.slice(0,120),cover:""}});trRender()};
+/* faixas e busca nas fontes livres */
+function trRender(){
+ var box=$("tl");box.innerHTML="";if(!TR.length)return;
+ var top=h("div",{class:"acts",style:"justify-content:flex-start;margin:10px 0"}),all=h("button",{class:"btn p",type:"button",text:"Buscar todas nas fontes livres"}),ex=h("button",{class:"btn",type:"button",text:"Baixar lista para o PUNK HUB (.json)"});
+ all.onclick=function(){all.disabled=true;var i=0,w=function(){if(i>=TR.length)return Promise.resolve();var k=i++;return findTr(k).then(w)};Promise.all([w(),w()]).then(function(){all.disabled=false})};
+ ex.onclick=function(){save(new Blob([JSON.stringify({app:"PUNK Music",name:SP.name,tracks:TR.map(function(t){return{title:t.title,artist:t.artist}})},null,1)],{type:"application/json"}),"PUNK-Music-playlist.json")};
+ top.appendChild(all);top.appendChild(ex);box.appendChild(top);box.appendChild(h("p",{class:"note",text:TR.length+" faixa(s). Para trazer a playlist inteira para o PUNK HUB: baixe a lista (.json) e, no app, abra Música > Transferir do Spotify > Abrir arquivo da lista."}));
+ TR.forEach(function(t,i){var img=h("img",{class:"cv",alt:"",width:"56",height:"56"});img.onerror=function(){img.style.visibility="hidden"};if(t.cover&&/^https:\/\/[\w.-]*scdn\.co\//.test(t.cover))img.src=t.cover;
+  var st=h("small",{class:"st",id:"tst"+i,role:"status"}),b=h("button",{class:"btn",type:"button",text:"Buscar nas fontes livres"});b.onclick=function(){findTr(i)};
+  var res=h("div",{class:"acts",id:"tr"+i});box.appendChild(h("div",{class:"row"},[img,h("div",{class:"tt"},[h("b",{text:t.title}),h("small",{text:t.artist||"Artista não informado"}),st]),h("div",{class:"acts"},[b])]));box.appendChild(h("div",{id:"tm"+i}))})}
+function findTr(i){
+ var t=TR[i],st=$("tst"+i),slot=$("tm"+i);if(!st)return Promise.resolve();msg(st,"Buscando...");slot.innerHTML="";
+ return searchAll((t.artist+" "+t.title).trim()).then(function(r){var nt=norm(t.title),na=norm(t.artist);
+  var m=r.list.filter(function(c){var x=norm(c.title);return x&&nt&&(x===nt||(x.length>3&&(x.indexOf(nt)>=0||nt.indexOf(x)>=0)))&&(!na||!c.artist||norm(c.artist).indexOf(na)>=0||na.indexOf(norm(c.artist))>=0)});
+  if(!m.length){msg(st,"Não encontrada em fontes livres. Provavelmente é uma música comercial: use um arquivo que você já tem ou adquira legalmente.",1);return}
+  msg(st,"Encontrada em "+m[0].from+".");slot.appendChild(rowFor(m[0]))}).catch(function(){msg(st,"Busca indisponível agora.",1)})}
+/* ---------- tutorial interativo ---------- */
+var OSK="pm-os",STK="pm-steps",os=LS.get(OSK)||(/Android/i.test(navigator.userAgent)?"and":"win");
+var T={win:[["Busque a música","Na aba Buscar músicas, digite o nome da música ou do artista e toque em Buscar. Toque em Ouvir prévia para conferir.","busca","Ir para a busca"],
+ ["Baixe o MP3","Toque em Baixar MP3. O arquivo vai para a pasta Downloads, com o nome Artista - Música.mp3."],
+ ["Abra o PUNK HUB","Abra o PUNK HUB no Windows e entre em Música."],
+ ["Importe a pasta Downloads","Toque em Pasta Downloads. O PUNK HUB lê só áudio dessa pasta, sem copiar os arquivos, e ela passa a ser verificada sozinha toda vez que você abre o app. Se preferir, use Adicionar pasta e escolha outra."],
+ ["Pronto","Suas músicas aparecem na biblioteca com capa e informações. Para uma playlist do Spotify: baixe a lista na aba Playlist do Spotify e use Música > Transferir do Spotify > Abrir arquivo da lista.","spotify","Ir para a aba Spotify"]],
+ and:[["Busque a música","Na aba Buscar músicas, digite o nome da música ou do artista e toque em Buscar. Toque em Ouvir prévia para conferir.","busca","Ir para a busca"],
+ ["Baixe o MP3","Toque em Baixar MP3. O navegador salva o arquivo em Downloads. Se o Android perguntar onde salvar, escolha Downloads."],
+ ["Abra o PUNK HUB","Abra o app PUNK HUB no celular e entre em Música."],
+ ["Importe os arquivos","Toque em Importar músicas, abra a pasta Downloads, selecione uma ou várias músicas e confirme. Elas ficam guardadas dentro do app e funcionam offline."],
+ ["Pronto","Para uma playlist do Spotify: baixe a lista na aba Playlist do Spotify e use Música > Transferir do Spotify > Abrir arquivo da lista. Elas casam com as músicas que você já importou.","spotify","Ir para a aba Spotify"]]};
+function done(){try{return JSON.parse(LS.get(STK)||"{}")}catch(e){return{}}}
+function tutRender(){
+ $("os-win").setAttribute("aria-pressed",os==="win");$("os-and").setAttribute("aria-pressed",os==="and");
+ var L=T[os],d=done()[os]||0,box=$("steps");box.innerHTML="";$("pb").style.width=(d/L.length*100)+"%";
+ L.forEach(function(s,i){var c=i===d?" cur":i<d?" done":"",ch=[h("h3",{},[h("span",{class:"num",text:i<d?"ok":String(i+1)}),s[0]])];
+  if(i<=d){ch.push(h("p",{text:s[1]}));var a=h("div",{class:"acts",style:"justify-content:flex-start;margin-top:8px"});if(s[2]){var g=h("button",{class:"btn",type:"button",text:s[3]});g.onclick=function(){tab(s[2])};a.appendChild(g)}
+   if(i===d){var n=h("button",{class:"btn p",type:"button",text:i===L.length-1?"Concluir":"Feito, próximo passo"});n.onclick=function(){var x=done();x[os]=d+1;LS.set(STK,JSON.stringify(x));tutRender()};a.appendChild(n)}ch.push(a)}
+  box.appendChild(h("div",{class:"step"+c},ch))});
+ if(d>=L.length)box.appendChild(h("p",{class:"note",text:"Tutorial concluído. Volte à busca para baixar mais músicas."}))}
+$("os-win").onclick=function(){os="win";LS.set(OSK,os);tutRender()};$("os-and").onclick=function(){os="and";LS.set(OSK,os);tutRender()};
+$("treset").onclick=function(){var x=done();x[os]=0;LS.set(STK,JSON.stringify(x));tutRender()};
+/* ---------- chuva leve ---------- */
+var c=$("rain"),x=c.getContext("2d"),W,H,d=[],run=!matchMedia("(prefers-reduced-motion:reduce)").matches;
+function rs(){W=c.width=innerWidth;H=c.height=innerHeight;d=[];for(var i=0;i<Math.round(W/16);i++)d.push({x:Math.random()*W,y:Math.random()*H,l:8+Math.random()*26,s:3+Math.random()*5})}
+rs();addEventListener("resize",rs);
+(function f(){if(run&&!document.hidden){x.clearRect(0,0,W,H);x.strokeStyle="rgba(255,255,255,.28)";x.beginPath();for(var i=0;i<d.length;i++){var r=d[i];x.moveTo(r.x,r.y);x.lineTo(r.x-r.l*.18,r.y+r.l);r.y+=r.s;r.x-=r.s*.18;if(r.y>H){r.y=-20;r.x=Math.random()*W+40}}x.stroke()}requestAnimationFrame(f)})();
+callback();
+})();
+</script>
+</body>
+</html>

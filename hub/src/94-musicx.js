@@ -85,6 +85,7 @@ function sptPanel(){
   ${ia?`<div class="sptia">${ia.busy?'<span class="m sm">Buscando no Internet Archive...</span>':ia.err?`<span class="m sm">${esc(ia.err)}</span>`:ia.l.length?ia.l.map(o=>`<div class="fl"><span class="m sm" style="flex:1">${esc(o.t)}${o.c?' · '+esc(o.c):''}</span><button data-a="iadl" data-q="${esc(nm)}" data-id="${esc(o.id)}">Baixar e adicionar</button></div>`).join(''):'<span class="m sm">Nenhuma versão com licença livre encontrada.</span>'}</div>`:''}</div>`};
  return`<div class="fl muhd"><h3 style="margin:0">Transferir do Spotify</h3></div>
  <p class="m sm">Cole links de músicas, álbuns ou playlists do Spotify, ou linhas "Artista - Música". O PUNK HUB lê só os nomes públicos e procura as músicas que <b>você já tem</b> na biblioteca, depois monta uma playlist. Ele não baixa nem converte áudio do Spotify.<br>Para playlists inteiras: abra a playlist no Spotify, selecione as faixas (Ctrl+A), copie (Ctrl+C) e cole aqui. Links de playlist ou álbum sozinhos só trazem o nome, porque listar as faixas exige autorizar a sua conta Spotify, o que esta versão não faz.</p>
+ <div class="fl"><button data-a="sptfile">Abrir arquivo da lista (.json ou .txt)</button><input type="file" id="sptf" accept=".json,.txt,application/json,text/plain" hidden data-i="sptfile"><span class="m sm">Gerado pelo site PUNK Music ao ler uma playlist do Spotify.</span></div>
  <textarea id="muspt" rows="6" placeholder="https://open.spotify.com/track/..." aria-label="Links do Spotify" style="width:100%" ${MX.spbusy?'disabled':''}>${s?esc(s.raw||''):''}</textarea>
  <div class="fl"><input id="musptn" maxlength="40" value="${esc(s?s.name:'Transferidas do Spotify')}" aria-label="Nome da playlist" style="flex:1;min-width:140px"><button class="p" data-a="sptgo" ${MX.spbusy?'disabled':''}>${MX.spbusy?`Lendo ${s?s.done:0}/${s?it.length:0}...`:'Transferir'}</button></div>
  ${s&&!MX.spbusy?`<div class="card"><b>${c('ok')+c('amb')} de ${it.length} encontradas</b><span class="m sm"> · ${c('miss')} não encontradas${c('err')?' · '+c('err')+' com erro':''}${c('list')?' · '+c('list')+' lista(s) sem faixas':''}</span>
@@ -113,7 +114,11 @@ function muxPanel(v){return`<div id="mux">${v==='radio'?radPanel():sptPanel()}</
 function muxPaint(){const e=$('#mux');if(!e)return;const ae=document.activeElement,id=ae&&ae.id,ss=ae&&ae.selectionStart;
  e.innerHTML=MU.view==='radio'?radPanel():sptPanel();if(id){const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(ss,ss)}catch(x){}}}}
 let _rdq;
-Object.assign(A,{radplay:a=>radPlay(a.dataset.id),radtop:()=>{MX.rq='';radSearch('')},sptgo:()=>sptRun(),sptcopy:sptCopyMissing,iafind:a=>iaFind(a.dataset.q),iadl:a=>iaGet(a.dataset.q,a.dataset.id)});
-Object.assign(I,{muradq:e=>{clearTimeout(_rdq);const q=e.value.trim();MX.rq=q;_rdq=setTimeout(()=>{if(q.length>=2||!q)radSearch(q)},450)}});
+Object.assign(A,{radplay:a=>radPlay(a.dataset.id),radtop:()=>{MX.rq='';radSearch('')},sptgo:()=>sptRun(),sptfile:()=>$('#sptf').click(),sptcopy:sptCopyMissing,iafind:a=>iaFind(a.dataset.q),iadl:a=>iaGet(a.dataset.q,a.dataset.id)});
+function sptFromFile(txt){
+ let L=[];try{const j=JSON.parse(txt);const a=Array.isArray(j)?j:Array.isArray(j.tracks)?j.tracks:[];L=a.slice(0,300).map(t=>t&&typeof t==='object'?((t.artist?String(t.artist).slice(0,100)+' - ':'')+String(t.title||t.name||'').slice(0,100)):String(t).slice(0,200)).filter(x=>x.replace(/^.* - /,'').trim());if(j&&j.name&&!Array.isArray(j)){const n=$('#musptn');if(n)n.value=String(j.name).slice(0,40)}}
+ catch(e){L=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,300)}
+ return L}
+Object.assign(I,{sptfile:e=>{const f=e.files[0];e.value='';if(!f)return;if(f.size>2e6){toast('Arquivo grande demais para ser uma lista.');return}f.text().then(t=>{const L=sptFromFile(t);if(!L.length){toast('Não achei músicas nesse arquivo.');return}const ta=$('#muspt');if(ta){ta.value=L.join('\n');toast(L.length+' música(s) carregadas. Toque em Transferir.')}})},muradq:e=>{clearTimeout(_rdq);const q=e.value.trim();MX.rq=q;_rdq=setTimeout(()=>{if(q.length>=2||!q)radSearch(q)},450)}});
 /* ao abrir a aba Rádios pela primeira vez, carrega as populares */
 {const o=A.muview;A.muview=a=>{o(a);if(a.dataset.v==='radio'&&!MX.rs&&!MX.rbusy)radSearch('')}}

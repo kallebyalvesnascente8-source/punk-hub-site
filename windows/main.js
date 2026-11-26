@@ -81,6 +81,7 @@ async function walkAudio(dir,out,depth){
 function registerIpc(){
  H('pickMusicDir',async()=>{const r=await dialog.showOpenDialog(win,{properties:['openDirectory'],title:'Escolha uma pasta de músicas'});return r.canceled||!r.filePaths[0]?'':addMusicRoot(r.filePaths[0])||''});
  H('musicDir',()=>addMusicRoot(app.getPath('music'))||'');
+ H('downloadsDir',()=>addMusicRoot(app.getPath('downloads'))||'');
  H('listAudio',async d=>{if(!allowedMusic(d))throw new Error('pasta não autorizada');const out=[];await walkAudio(realOr(d),out,0);return out});
  H('agent',async()=>{const a=await startAgent();return{url:a.url,token:SET.token}});
  H('allowKill',b=>{SET.allowKill=!!b;if(agent)agent.setAllowKill(SET.allowKill);saveSettings();return SET.allowKill});
