@@ -64,7 +64,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with: { path: arquivos, merge-multiple: true }
-      - run: ls -la arquivos
+      # nomes fixos: o site usa links diretos .../releases/latest/download/<nome>, que valem para qualquer versao
+      - run: |
+          cd arquivos
+          for f in *.exe; do mv "$f" PUNK-HUB-Setup.exe; done
+          for f in *.apk; do mv "$f" PUNK-HUB.apk; done
+          ls -la
       - env:
           GH_TOKEN: ${{ github.token }}
           V: ${{ needs.versao.outputs.v }}
