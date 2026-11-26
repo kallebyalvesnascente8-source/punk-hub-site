@@ -76,26 +76,32 @@ function repo(){var q=/^[\w.-]+\/[\w.-]+$/,p=new URLSearchParams(location.search
 var REPO=repo(),UA=navigator.userAgent||"",OS=/Android/i.test(UA)?"apk":/Windows/i.test(UA)?"exe":"";
 if(OS)$("b-"+OS).classList.add("rec");
 function mb(n){return(n/1048576).toFixed(0)+" MB"}
-function setBtn(k,a,tag){var el=$("b-"+k);if(!a){el.classList.add("off");el.setAttribute("aria-disabled","true");el.removeAttribute("href");return}
- var ok=/^https:\/\/github\.com\//.test(a.browser_download_url);if(!ok)return;el.href=a.browser_download_url;el.classList.remove("off");el.removeAttribute("aria-disabled");
- $("s-"+k).textContent=(k==="exe"?"Instalador .exe":"Arquivo .apk")+" · "+mb(a.size)}
-function none(t){$("msg").textContent=t;$("chv").textContent="Versão ...";$("chd").textContent="Em breve";$("nl").innerHTML="";var li=document.createElement("li");li.textContent="Ainda não há novidades publicadas.";$("nl").appendChild(li)}
-if(!REPO){none("Site ainda não ligado a um repositório do GitHub. Publique pelo GitHub Pages (veja o PUBLICAR.md).");$("rl").style.display="none"}
-else{$("rl").href="https://github.com/"+REPO+"/releases";
+var STABLE={exe:"PUNK-HUB-Setup.exe",apk:"PUNK-HUB.apk"},LBL={exe:"Instalador .exe",apk:"Arquivo .apk"},KEY="punkhub-site-rel";
+function setLink(k,url,size){var el=$("b-"+k);if(!/^https:\/\/github\.com\//.test(url))return;el.href=url;el.classList.remove("off");el.removeAttribute("aria-disabled");$("s-"+k).textContent=LBL[k]+(size?" \u00b7 "+mb(size):"")}
+function offBtn(k){var el=$("b-"+k);el.classList.add("off");el.setAttribute("aria-disabled","true");el.removeAttribute("href")}
+function notes(L){$("nl").innerHTML="";(L&&L.length?L:["Ainda n\u00e3o h\u00e1 novidades publicadas."]).forEach(function(s){var li=document.createElement("li");li.textContent=String(s).slice(0,200);$("nl").appendChild(li)})}
+function show(d){$("chv").textContent="Vers\u00e3o "+d.ver;$("nt").textContent="Novidades da vers\u00e3o "+d.ver;$("chd").textContent=d.dl.toLocaleString("pt-BR")+" downloads";notes(d.notes)}
+if(!REPO){["exe","apk"].forEach(offBtn);$("msg").textContent="Site ainda n\u00e3o ligado a um reposit\u00f3rio do GitHub. Publique pelo GitHub Pages (veja o PUBLICAR.md).";$("chv").textContent="Vers\u00e3o ...";$("chd").textContent="Em breve";notes();$("rl").style.display="none"}
+else{
+ /* Downloads: links diretos e fixos do GitHub Releases. Funcionam sem a API e valem para qualquer versão futura. */
+ ["exe","apk"].forEach(function(k){setLink(k,"https://github.com/"+REPO+"/releases/latest/download/"+STABLE[k],0)});
+ $("rl").href="https://github.com/"+REPO+"/releases";$("msg").textContent="";
+ var cache=null;try{cache=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+ if(cache&&cache.ver)show(cache);else{$("chv").textContent="Vers\u00e3o mais recente";$("chd").textContent="Downloads abertos";notes()}
+ /* A API só consulta versão, novidades e tamanhos. Se falhar, os botões continuam funcionando. */
  fetch("https://api.github.com/repos/"+REPO+"/releases?per_page=20",{headers:{accept:"application/vnd.github+json"}}).then(function(r){
   if(!r.ok)throw new Error(r.status);return r.json()}).then(function(L){
+  if(!Array.isArray(L))throw new Error("fmt");
   L=L.filter(function(x){return x&&!x.draft&&!x.prerelease&&/^v?\d+\.\d+\.\d+/.test(x.tag_name||"")});
-  if(!L.length){none("A primeira versão ainda não foi publicada. Volte em breve.");return}
-  var r=L[0],A=r.assets||[],exe=A.filter(function(a){return /\.exe$/i.test(a.name)})[0],apk=A.filter(function(a){return /\.apk$/i.test(a.name)})[0];
-  setBtn("exe",exe);setBtn("apk",apk);
-  var ver=String(r.tag_name).replace(/^v/,"");$("chv").textContent="Versão "+ver;$("nt").textContent="Novidades da versão "+ver;
-  var dl=0;L.forEach(function(x){(x.assets||[]).forEach(function(a){if(/\.(exe|apk)$/i.test(a.name))dl+=+a.download_count||0})});$("chd").textContent=dl.toLocaleString("pt-BR")+" downloads";
-  $("msg").textContent=exe||apk?"":"Esta versão ainda não tem arquivos para baixar.";
-  if(OS==="exe"&&!exe||OS==="apk"&&!apk)$("msg").textContent="Esta versão ainda não tem o arquivo para o seu aparelho.";
-  if(!OS&&(exe||apk))$("msg").textContent="Escolha a versão para o seu aparelho.";
+  if(!L.length){["exe","apk"].forEach(offBtn);$("msg").textContent="A primeira vers\u00e3o ainda n\u00e3o foi publicada. Volte em breve.";$("chv").textContent="Vers\u00e3o ...";$("chd").textContent="Em breve";notes();return}
+  var r=L[0],A=r.assets||[],f={exe:/\.exe$/i,apk:/\.apk$/i},miss=0;
+  ["exe","apk"].forEach(function(k){var a=A.filter(function(x){return f[k].test(x.name||"")})[0];
+   if(a)setLink(k,a.browser_download_url,+a.size);else{offBtn(k);miss++}});
+  var dl=0;L.forEach(function(x){(x.assets||[]).forEach(function(a){if(/\.(exe|apk)$/i.test(a.name||""))dl+=+a.download_count||0})});
   var lines=String(r.body||"").split(/\r?\n/).map(function(s){return s.replace(/^\s*[-*]\s+/,"").replace(/^#+\s*/,"").replace(/\*\*|__|`/g,"").trim()}).filter(function(s){return s&&!/^(full changelog|what's changed)/i.test(s)}).slice(0,8);
-  $("nl").innerHTML="";(lines.length?lines:["Melhorias e correções."]).forEach(function(s){var li=document.createElement("li");li.textContent=s.slice(0,200);$("nl").appendChild(li)})
- }).catch(function(){none("Não foi possível consultar as versões agora. Tente de novo em instantes.")})}
+  var d={ver:String(r.tag_name).replace(/^v/,""),dl:dl,notes:lines.length?lines:["Melhorias e corre\u00e7\u00f5es."]};show(d);try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
+  $("msg").textContent=miss?"Esta vers\u00e3o ainda n\u00e3o tem todos os arquivos. Veja em Todas as vers\u00f5es.":(OS?"":"Escolha a vers\u00e3o para o seu aparelho.")
+ }).catch(function(){$("msg").textContent="N\u00e3o foi poss\u00edvel carregar vers\u00e3o e novidades agora, mas os downloads continuam funcionando."})}
 /* acordeões */
 document.querySelectorAll(".ac>button").forEach(function(b){b.onclick=function(){var o=b.parentElement.classList.toggle("open");b.setAttribute("aria-expanded",o)}});
 $("enter").onclick=function(){this.classList.add("off")};
