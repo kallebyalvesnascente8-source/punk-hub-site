@@ -76,7 +76,7 @@ function repo(){var q=/^[\w.-]+\/[\w.-]+$/,p=new URLSearchParams(location.search
 var REPO=repo(),UA=navigator.userAgent||"",OS=/Android/i.test(UA)?"apk":/Windows/i.test(UA)?"exe":"";
 if(OS)$("b-"+OS).classList.add("rec");
 function mb(n){return(n/1048576).toFixed(0)+" MB"}
-var STABLE={exe:"PUNK-HUB-Setup.exe",apk:"PUNK-HUB.apk"},LBL={exe:"Instalador .exe",apk:"Arquivo .apk"},KEY="punkhub-site-rel";
+var STABLE={exe:"PUNK-HUB-Setup.exe",apk:"PUNK-HUB.apk"},LBL={exe:"Instalador .exe",apk:"Arquivo .apk"},KEY="punkhub-site-rel-V2";
 function setLink(k,url,size){var el=$("b-"+k);if(!/^https:\/\/github\.com\//.test(url))return;el.href=url;el.classList.remove("off");el.removeAttribute("aria-disabled");$("s-"+k).textContent=LBL[k]+(size?" \u00b7 "+mb(size):"")}
 function offBtn(k){var el=$("b-"+k);el.classList.add("off");el.setAttribute("aria-disabled","true");el.removeAttribute("href")}
 function notes(L){$("nl").innerHTML="";(L&&L.length?L:["Ainda n\u00e3o h\u00e1 novidades publicadas."]).forEach(function(s){var li=document.createElement("li");li.textContent=String(s).slice(0,200);$("nl").appendChild(li)})}
@@ -94,7 +94,9 @@ else{
   if(!Array.isArray(L))throw new Error("fmt");
   L=L.filter(function(x){return x&&!x.draft&&!x.prerelease&&/^v?\d+\.\d+\.\d+/.test(x.tag_name||"")});
   if(!L.length){["exe","apk"].forEach(offBtn);$("msg").textContent="A primeira vers\u00e3o ainda n\u00e3o foi publicada. Volte em breve.";$("chv").textContent="Vers\u00e3o ...";$("chd").textContent="Em breve";notes();return}
-  var r=L[0],A=r.assets||[],f={exe:/\.exe$/i,apk:/\.apk$/i},miss=0;
+  var r=L.sort(function(a,b){
+  return b.tag_name.localeCompare(a.tag_name,undefined,{numeric:true});
+})[0],A=r.assets||[],f={exe:/\.exe$/i,apk:/\.apk$/i},miss=0;
   ["exe","apk"].forEach(function(k){var a=A.filter(function(x){return f[k].test(x.name||"")})[0];
    if(a)setLink(k,a.browser_download_url,+a.size);else{offBtn(k);miss++}});
   var dl=0;L.forEach(function(x){(x.assets||[]).forEach(function(a){if(/\.(exe|apk)$/i.test(a.name||""))dl+=+a.download_count||0})});
