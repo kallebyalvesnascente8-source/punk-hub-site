@@ -22,7 +22,7 @@ function bar(){
  tick();muPaint()}
 
 function openApp(k){
- const a=APPS.find(x=>x[0]===k);closePops();
+ const a=APPS.find(x=>x[0]===k);closePops();if(k!=='home'&&a&&typeof CLEAN!=='undefined'&&CLEAN)cleanView(0);
  if(k==='home'||!a){cur='home';$('#win').hidden=1;bar();return}
  cur=k;const w=$('#win');w.hidden=0;
  w.innerHTML=`<div class="wt"><b>${appIcon(k)} ${a[1]}</b><button data-a="open" data-k="home" aria-label="Fechar janela">×</button></div><div class="wb" id="wbody"></div>`;
@@ -55,7 +55,7 @@ function noti(){$('#noti').innerHTML=`<div class="row"><b>Notificações</b><spa
 
 /* ---- Configurações rápidas (popup e widget compartilham os botões) ---- */
 const QSV={bl:18};
-const QS=[['anim','Animações',()=>!!S.l.anim,'layers'],['blur','Desfoque',()=>S.t.bl>0,'image'],['fx','Efeitos de fundo',()=>!!S.l.fxon,'star'],['lock','Travar widgets',()=>!!S.l.lock,'gear'],['dnd','Não perturbar',()=>!!S.l.dnd,'bell'],['float','Barra flutuante',()=>!!S.bar.float,'menu'],['h24','Relógio 24h',()=>!!S.h24,'clock'],['fs','Tela cheia',()=>!!document.fullscreenElement,'power'],['theme','Próximo tema',()=>0,'palette']];
+const QS=[['anim','Animações',()=>!!S.l.anim,'layers'],['blur','Desfoque',()=>S.t.bl>0,'image'],['fx','Efeitos de fundo',()=>!!S.l.fxon,'star'],['lock','Travar widgets',()=>!!S.l.lock,'gear'],['clean','Visualização limpa',()=>CLEAN,'image'],['dnd','Não perturbar',()=>!!S.l.dnd,'bell'],['float','Barra flutuante',()=>!!S.bar.float,'menu'],['h24','Relógio 24h',()=>!!S.h24,'clock'],['fs','Tela cheia',()=>!!document.fullscreenElement,'power'],['theme','Próximo tema',()=>0,'palette']];
 const qsBtns=()=>`<div class="fl">${QS.map(([k,n,f,ic])=>{const on=f();return`<button data-a="q" data-k="${k}" aria-pressed="${on}" class="${on?'on':''}">${svg(ic)} ${n}</button>`}).join('')}</div>`;
 function qs(){
  const st=(ok,t)=>`<div class="stat"><span class="dot" style="background:${ok==='ok'?'var(--ac)':ok==='check'?'#e0b000':'#e5484d'}"></span><span class="m sm">${t}</span></div>`;
@@ -75,13 +75,14 @@ Object.assign(A,{
   else if(k==='blur'){if(S.t.bl>0){QSV.bl=S.t.bl;S.t.bl=0}else S.t.bl=QSV.bl||18}
   else if(k==='fx')S.l.fxon=S.l.fxon?0:1;
   else if(k==='lock')S.l.lock=S.l.lock?0:1;
+  else if(k==='clean'){closePops();cleanView();return}
   else if(k==='dnd')S.l.dnd=S.l.dnd?0:1;
   else if(k==='float'){S.bar.float=S.bar.float?0:1}
   else if(k==='h24'){S.h24=S.h24?0:1;tick()}
   else if(k==='fs'){(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>notify('Tela cheia indisponível neste ambiente.'));return}
   else if(k==='theme')return nextTheme();
   apply();save();qsAll()},
- ctx:a=>{closePops();({set:()=>openApp('settings'),theme:()=>nextTheme(),lock:()=>{S.l.lock=S.l.lock?0:1;apply();save();toast(S.l.lock?'Widgets travados':'Widgets liberados');qsAll()},arr:()=>A.warr(),addw:()=>{sTab='widgets';openApp('settings')},fs:()=>A.q({dataset:{k:'fs'}})}[a.dataset.k]||(()=>{}))()}});
+ ctx:a=>{closePops();({clean:()=>cleanView(1),showw:()=>A.wshowall(),set:()=>openApp('settings'),theme:()=>nextTheme(),lock:()=>{S.l.lock=S.l.lock?0:1;apply();save();toast(S.l.lock?'Widgets travados':'Widgets liberados');qsAll()},arr:()=>A.warr(),addw:()=>{sTab='widgets';openApp('settings')},fs:()=>A.q({dataset:{k:'fs'}})}[a.dataset.k]||(()=>{}))()}});
 Object.assign(I,{
  mq:e=>menuBody(e.value),
  qtheme:e=>useTheme(e.value)});
@@ -125,7 +126,8 @@ document.addEventListener('click',e=>{
  const live=!t.dataset.ch&&(t.type==='range'||t.type==='color'||t.tagName==='TEXTAREA'||t.type==='text'||t.type==='search'||!t.type);
  if((ev==='input')!==live)return;I[t.dataset.i]?.(t)}));
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){closePops();if(!$('#win').hidden)openApp('home')}
+ if(e.key==='Escape'){if(CLEAN){cleanView(0);return}closePops();if(!$('#win').hidden)openApp('home')}
+ if(e.altKey&&!e.ctrlKey&&!e.metaKey&&e.key.toLowerCase()==='h'&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){e.preventDefault();cleanView()}
  if(e.key==='Enter'&&!e.isComposing){const t=e.target,id=t.id,c=t.classList;
   if(id==='pi'&&!e.shiftKey){e.preventDefault();A.send()}
   else if(c.contains('ti'))A.tadd(t);else if(id==='tn1')A.tnew();
@@ -135,6 +137,6 @@ document.addEventListener('keydown',e=>{
   else if(t.dataset.i==='ttext')t.blur()}});
 document.addEventListener('contextmenu',e=>{
  if(e.target.closest('#win,.pop,input,textarea,.w,#bar'))return;e.preventDefault();closePops();
- const c=$('#ctx');c.innerHTML=[['set','Configurações'],['addw','Adicionar widget'],['arr','Organizar widgets'],['theme','Próximo tema'],['lock',S.l.lock?'Destravar widgets':'Travar widgets'],['fs','Tela cheia']].map(i=>`<button role="menuitem" data-a="ctx" data-k="${i[0]}">${i[1]}</button>`).join('');
+ const c=$('#ctx');c.innerHTML=[['set','Configurações'],['clean','Visualização limpa'],['addw','Adicionar widget'],['arr','Organizar widgets'],...(S.widgets.some(w=>w.hid)?[['showw','Mostrar widgets ocultos']]:[]),['theme','Próximo tema'],['lock',S.l.lock?'Destravar widgets':'Travar widgets'],['fs','Tela cheia']].map(i=>`<button role="menuitem" data-a="ctx" data-k="${i[0]}">${i[1]}</button>`).join('');
  c.hidden=0;c.style.left=Math.min(e.clientX,innerWidth-220)+'px';c.style.top=Math.min(e.clientY,innerHeight-240)+'px'});
 document.addEventListener('fullscreenchange',qsAll);

@@ -6,6 +6,21 @@ const hex=v=>/^#[0-9a-f]{6}$/i.test(v),clamp=(v,a,b)=>Math.min(b,Math.max(a,+v||
 const num=(v,a,b,d)=>{const n=parseFloat(v);return Number.isFinite(n)?Math.min(b,Math.max(a,n)):d};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6),cap=s=>s?s[0].toUpperCase()+s.slice(1):s,pick=a=>a[Math.floor(Math.random()*a.length)];
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),mix=(a,b,p,al)=>{const x=rgb(a),y=rgb(b);return`rgba(${x.map((v,i)=>Math.round(v+(y[i]-v)*p)).join()},${al})`},lum=h=>{const[r,g,b]=rgb(h);return(.299*r+.587*g+.114*b)/255};
+/* Aceita qualquer cor CSS comum e devolve #rrggbb (ou '' se não der para entender):
+   #rgb, #rgba, #rrggbb, #rrggbbaa, sem "#", rgb(), rgba(), hsl(), hsla() e nomes (red, white...).
+   Só devolve hexadecimal puro, então nunca entra texto livre no CSS. */
+let _cx;
+function hexN(v){
+ if(typeof v!=='string')return'';v=v.trim();if(!v||v.length>60)return'';
+ if(hex(v))return v.toLowerCase();
+ let m=/^#?([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(v);
+ if(m&&m[1].length!==5&&m[1].length!==7){let h=m[1];if(h.length<=4)h=[...h].map(c=>c+c).join('');return'#'+h.slice(0,6).toLowerCase()}
+ if(!/^(rgba?|hsla?|[a-z]+)(\(|$)/i.test(v)||/^(current|inherit|initial|unset|transparent|var|url)/i.test(v))return'';
+ try{_cx=_cx||document.createElement('canvas').getContext('2d');
+  _cx.fillStyle='#000001';_cx.fillStyle=v;const a=_cx.fillStyle;_cx.fillStyle='#000002';_cx.fillStyle=v;if(a!==_cx.fillStyle)return'';
+  if(hex(a))return a.toLowerCase();
+  const r=/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/.exec(a);if(!r||+r[4]===0)return'';
+  return'#'+[1,2,3].map(i=>(+r[i]).toString(16).padStart(2,'0')).join('')}catch(e){return''}}
 const A={},I={},R={};   /* A: ações de clique (data-a) | I: ações de input (data-i) | R: telas das janelas */
 const fmtB=(n,d=1)=>{n=+n||0;const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<4){n/=1024;i++}return(i?n.toFixed(d):Math.round(n))+' '+u[i]};
 const fmtDur=s=>{s=Math.floor(s);const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return(d?d+'d ':'')+(h||d?h+'h ':'')+m+'min'};

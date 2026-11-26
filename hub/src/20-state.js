@@ -15,7 +15,7 @@ function cleanMusic(j){
  return{tracks:tr,fav:arr(j.fav).filter(x=>ids.has(x)).slice(0,3000),pls:arr(j.pls).slice(0,50).filter(p=>p&&rx('pl',p.id)).map(p=>({id:p.id,n:String(p.n||'Playlist').slice(0,40),t:arr(p.t).filter(x=>ids.has(x)).slice(0,3000)})),
   hist:arr(j.hist).filter(h=>h&&ids.has(h.id)).slice(0,200).map(h=>({id:h.id,t:+h.t||0})),q:arr(j.q).filter(x=>ids.has(x)).slice(0,500),cur:ids.has(j.cur)?j.cur:'',pos:num(j.pos,0,259200,0),vol:num(j.vol,0,1,.8),rep:['off','all','one'].includes(j.rep)?j.rep:'off',shuf:j.shuf?1:0,dirs:arr(j.dirs).filter(x=>typeof x==='string'&&x.length<400).slice(0,20),rads:arr(j.rads).filter(r=>r&&rx('rd',r.id)&&typeof r.u==='string'&&/^https:\/\//.test(r.u)&&r.u.length<500).slice(0,60).map(r=>({id:r.id,n:String(r.n||'Rádio').slice(0,80),u:r.u,cc:String(r.cc||'').slice(0,3)}))}}
 const defaults=()=>({v:2,t:structuredClone(TH.dark),name:'dark',themes:{},name_:'',h24:1,
- l:{bar:'bottom',menu:'grid',gap:14,sc:100,snap:1,anim:1,lock:0,dnd:0,fxon:1},bar:BAR_D(),icons:{},fonts:[],widgets:presetW('Padrão'),layouts:{},
+ l:{bar:'bottom',menu:'grid',gap:14,sc:100,snap:1,anim:1,lock:0,dnd:0,fxon:1,fxfps:30,fxfo:0,mlay:'stack',mzone:55,wo:100},bar:BAR_D(),icons:{},fonts:[],widgets:presetW('Padrão'),layouts:{},
  todos:[],act:[],photos:[],phdirs:[],tut:0,upd:1,music:{tracks:[],fav:[],pls:[],hist:[],q:[],cur:'',pos:0,vol:.8,rep:'off',shuf:0,dirs:[],rads:[]},links:[{id:'l1',n:'GitHub',k:'url',u:'https://github.com',a:'',ic:'b:code',pin:0},{id:'l2',n:'ArchWiki',k:'url',u:'https://wiki.archlinux.org',a:'',ic:'b:book',pin:0},{id:'l3',n:'r/unixporn',k:'url',u:'https://www.reddit.com/r/unixporn',a:'',ic:'b:globe',pin:0}],
  games:[],projs:[],inbox:[],ev:[],lastDue:'',agent:{url:'http://127.0.0.1:7788',token:''},
  ai:{url:'http://localhost:11434',model:'',sys:AI_SYS,temp:.7,convs:[],cur:''}});
@@ -25,12 +25,13 @@ function cleanBar(b){b=b&&typeof b==='object'?b:{};const d=BAR_D(),ks=APPS.map(a
   show:Object.fromEntries(Object.keys(d.show).map(k=>[k,b.show&&b.show[k]===0?0:1]))}}
 function wsClean(s){s=s&&typeof s==='object'?s:{};const o={};
  ['ac','bg','tx','bc'].forEach(k=>{if(hex(s[k]))o[k]=s[k]});
- [['al',20,100],['bl',0,40],['r',0,40],['bw',0,6],['fs',10,28]].forEach(([k,a,b])=>{if(s[k]!=null&&s[k]!=='')o[k]=num(s[k],a,b,a)});
+ [['al',0,100],['o',15,100],['bl',0,40],['r',0,40],['bw',0,6],['fs',10,28]].forEach(([k,a,b])=>{if(s[k]!=null&&s[k]!=='')o[k]=num(s[k],a,b,a)});
  if(s.hd===0)o.hd=0;if(typeof s.tt==='string'&&s.tt)o.tt=s.tt.slice(0,40);if(icOk(s.ic))o.ic=s.ic;return o}
 function cw(w,i=0){
  if(!w||typeof w!=='object'||!W[w.type])return null;const d=W[w.type],c={};
  Object.entries(d.cfg).forEach(([k,dv])=>{const v=w.cfg&&w.cfg[k];c[k]=typeof v===typeof dv?(typeof v==='string'?v.slice(0,k==='text'?20000:200):v):dv});
- return{id:String(w.id||uid()).slice(0,24),type:w.type,x:num(w.x,0,8000,20),y:num(w.y,0,8000,20),w:num(w.w,d.mw,4000,d.w),h:num(w.h,d.mh,4000,d.h),z:num(w.z,0,9999,i+1),st:wsClean(w.st),cfg:c}}
+ const g=w.mg&&typeof w.mg==='object'?w.mg:null,o={id:String(w.id||uid()).slice(0,24),type:w.type,x:num(w.x,0,8000,20),y:num(w.y,0,8000,20),w:num(w.w,d.mw,4000,d.w),h:num(w.h,d.mh,4000,d.h),z:num(w.z,0,9999,i+1),st:wsClean(w.st),cfg:c};
+ if(w.hid)o.hid=1;if(g)o.mg={x:num(g.x,0,3000,0),y:num(g.y,0,6000,0),w:num(g.w,60,1200,280),h:num(g.h,50,3000,150)};return o}
 function cleanLink(x){if(!x||typeof x!=='object')return null;const k=x.k==='app'?'app':'url';
  if(k==='url'&&!/^https?:\/\//i.test(x.u))return null;if(k==='app'&&!APPS.some(a=>a[0]===x.a))return null;
  return{id:String(x.id||uid()).slice(0,24),n:String(x.n||x.a||'').slice(0,40),k,u:k==='url'?String(x.u).slice(0,500):'',a:k==='app'?x.a:'',ic:icOk(x.ic)?x.ic:'',pin:x.pin?1:0}}
@@ -44,7 +45,7 @@ function merge(j){
  const t0=clean(j.t);if(t0){s.t=t0;if(v1){if(WALLS[l.wall]&&l.wall!=='img')s.t.wall=l.wall;if(/^data:image\//.test(l.img)){MIG.img=l.img;s.t.wall='img'}}}
  s.name=String(j.name||'dark').slice(0,30);
  s.themes={};Object.entries(j.themes||{}).forEach(([k,v])=>{const c=clean(v);if(c)s.themes[String(k).slice(0,30)]=c});
- s.l={bar:['top','bottom','left','right'].includes(l.bar)?l.bar:'bottom',menu:l.menu==='list'?'list':'grid',gap:num(l.gap,4,40,14),sc:num(l.sc,80,130,100),snap:l.snap===0?0:1,anim:l.anim===0?0:1,lock:l.lock?1:0,dnd:l.dnd?1:0,fxon:l.fxon===0?0:1};
+ s.l={bar:['top','bottom','left','right'].includes(l.bar)?l.bar:'bottom',menu:l.menu==='list'?'list':'grid',gap:num(l.gap,4,40,14),sc:num(l.sc,80,130,100),snap:l.snap===0?0:1,anim:l.anim===0?0:1,lock:l.lock?1:0,dnd:l.dnd?1:0,fxon:l.fxon===0?0:1,fxfps:[20,30,60].includes(+l.fxfps)?+l.fxfps:30,fxfo:l.fxfo?1:0,mlay:l.mlay==='free'?'free':'stack',mzone:num(l.mzone,30,100,55),wo:num(l.wo,15,100,100)};
  s.bar=cleanBar(j.bar);
  s.icons={};Object.entries(j.icons||{}).forEach(([k,v])=>{if(/^[\w:-]{1,40}$/.test(k)&&icOk(v))s.icons[k]=v});
  s.fonts=arr(j.fonts).filter(f=>f&&typeof f.id==='string'&&typeof f.name==='string'&&cleanFont(f.name)).slice(0,10).map(f=>({id:f.id.slice(0,40),name:cleanFont(f.name)}));

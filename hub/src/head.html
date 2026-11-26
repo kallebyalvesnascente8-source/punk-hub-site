@@ -52,10 +52,13 @@ span.ig{display:inline-block;width:auto;height:auto;line-height:1;vertical-align
 #wp{position:absolute;inset:0;background:var(--bg)}
 #wp::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--wd,0))}
 #fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#chr{position:fixed;bottom:0;max-width:90vw;max-height:100vh;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;transform-origin:bottom center}
+#chr{position:fixed;bottom:0;max-width:90vw;max-height:100vh;max-height:100dvh;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;transform-origin:bottom center}
 body[data-bar=bottom] #chr{bottom:calc(var(--wb) - 12px)}
 #ovl{position:absolute;inset:0;pointer-events:none}
-#wg{position:absolute;top:var(--wt);bottom:var(--wb);left:var(--wl);right:var(--wr);overflow:auto}
+#wg{position:absolute;top:var(--wt);bottom:var(--wb);left:var(--wl);right:var(--wr);overflow:auto;opacity:var(--wo,1);transition:opacity .2s}
+body.clean #wg{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
+#cleanb{position:fixed;z-index:60;top:calc(var(--wt) + 4px);right:12px;padding:8px 14px;font:inherit;color:var(--tx);cursor:pointer;opacity:.7}#cleanb:hover,#cleanb:focus-visible{opacity:1}#cleanb[hidden]{display:none}
+.w[data-hid="1"]{display:none}
 
 /* ---------- Widgets ---------- */
 .w{position:absolute;display:flex;flex-direction:column;min-width:120px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
@@ -246,10 +249,17 @@ ol.hl{padding-left:1.3em;margin:.4em 0}ol.hl li{margin:.5em 0}
 @media(max-width:700px){
  #tasks span{display:none}
  #tasks{justify-content:center}#tasks button:not(.on):not([data-k=home]){display:none}
- #wg{display:flex;flex-direction:column;gap:10px}
- #wg .w{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;flex:none}
- #wg .rz{display:none}#wg .wbd{overflow:visible}
- #chr{max-height:45vh}
+ /* Coluna: a área de widgets ocupa só parte da tela (--mz, % da altura) e rola por dentro; o resto mostra fundo e personagem */
+ #wg{display:flex;flex-direction:column;gap:10px;bottom:auto;height:calc(var(--mz,55)*1vh - var(--wt));max-height:calc(100vh - var(--wt) - var(--wb));overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ @supports(height:1dvh){#wg{height:calc(var(--mz,55)*1dvh - var(--wt));max-height:calc(100dvh - var(--wt) - var(--wb))}}
+ body:not([data-ml=free]) #wg .w{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;flex:none}
+ body:not([data-ml=free]) #wg .rz{display:none}#wg .wbd{overflow:visible}
+ /* Livre: cada widget tem posição e tamanho próprios (mover pelo título, redimensionar pelo canto) */
+ body[data-ml=free] #wg{display:block;overflow:hidden;bottom:var(--wb);height:auto;max-height:none}
+ body[data-ml=free] #wg .w{position:absolute}body[data-ml=free] #wg .wbd{overflow:auto}
+ body[data-ml=free] #wg .rz{display:block;opacity:.8;width:28px;height:28px;right:2px;bottom:2px;touch-action:none}
+ body[data-ml=free] #wg .wh{cursor:grab;touch-action:none}
+ body[data-ml=free].lock #wg .rz{display:none}
  .ai{grid-template-columns:minmax(0,1fr)}.ai-side{display:none}.ai.side .ai-side{display:flex}.ai.side .ai-main{display:none}.ai-tg{display:inline-block}
 }
 .tut{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(4px);padding:16px}
@@ -260,6 +270,7 @@ ol.hl{padding-left:1.3em;margin:.4em 0}ol.hl li{margin:.5em 0}
 </style></head>
 <body data-bar="bottom">
 <div id="desk"><div id="wp"></div><canvas id="fx" hidden></canvas><img id="chr" alt="" hidden><div id="ovl"></div><div id="wg"></div></div>
+<button id="cleanb" class="g" data-a="clean2" hidden aria-label="Mostrar os widgets de novo">Mostrar widgets</button>
 <main id="win" class="g" hidden aria-label="Janela"></main>
 <div id="menu" class="pop g pl" hidden></div>
 <div id="cal" class="pop g pr" hidden></div>

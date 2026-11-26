@@ -69,15 +69,27 @@ function wst(w){
  const s=w.st,v=[],tx=s.tx||S.t.tx,bg=s.bg||S.t.bg;
  if(s.ac)v.push(`--ac:${s.ac}`,`--act:${lum(s.ac)>.55?'#000':'#fff'}`);if(s.tx)v.push(`--tx:${s.tx}`);
  if(s.bg||s.tx||s.al!=null)v.push(`--pn:${mix(bg,tx,.07,(s.al!=null?s.al:S.t.al)/100)}`);
- if(s.bl!=null)v.push(`--bl:${s.bl}px`);if(s.r!=null)v.push(`--r:${s.r}px`);if(s.bw!=null)v.push(`--bw:${s.bw}px`);if(s.bc)v.push(`--bc:${s.bc}`);if(s.fs)v.push(`font-size:${s.fs}px`);
+ if(s.o!=null)v.push(`opacity:${s.o/100}`);if(s.bl!=null)v.push(`--bl:${s.bl}px`);if(s.r!=null)v.push(`--r:${s.r}px`);if(s.bw!=null)v.push(`--bw:${s.bw}px`);if(s.bc)v.push(`--bc:${s.bc}`);if(s.fs)v.push(`font-size:${s.fs}px`);
  return v.join(';')}
+/* Geometria: no celular em modo Livre cada widget tem a sua própria (w.mg); o layout do computador não muda. */
+const SM=()=>innerWidth<=700,FREE=()=>SM()&&S.l.mlay==='free';
+function mgInit(w){
+ const g=$('#wg'),gw=g.clientWidth||innerWidth-20,gh=g.clientHeight||Math.round(innerHeight*.6),d=W[w.type],
+  half=Math.floor((gw-8)/2),ww=Math.min(w.w,d.mw<=half?half:gw),hh=Math.min(w.h,Math.max(d.mh,Math.round(gh*.3))),
+  oth=S.widgets.filter(o=>o!==w&&o.mg&&!o.hid);
+ for(let y=0;y+hh<=Math.max(gh,hh);y+=8)for(let x=0;x+ww<=gw;x+=8)if(!oth.some(o=>x<o.mg.x+o.mg.w+6&&x+ww+6>o.mg.x&&y<o.mg.y+o.mg.h+6&&y+hh+6>o.mg.y))return{x,y,w:ww,h:hh};
+ /* sem espaço: cascata deslocada, assim o título de cada widget continua alcançável */
+ const n=(oth.length%8)*26;return{x:Math.min(n,Math.max(0,gw-ww)),y:Math.min(n,Math.max(0,gh-hh)),w:ww,h:hh}}
+const G=w=>FREE()?(w.mg||(w.mg=mgInit(w))):w;
+const wGeo=w=>{const q=G(w);return`left:${q.x}px;top:${q.y}px;width:${q.w}px;height:${q.h}px`};
 function wFrame(w,anim){
  const d=W[w.type],s=w.st;
- return`<section class="w g${anim?' in':''}" data-id="${esc(w.id)}" data-type="${w.type}" data-hd="${s.hd===0?0:1}" style="left:${w.x}px;top:${w.y}px;width:${w.w}px;height:${w.h}px;z-index:${w.z};${wst(w)}"><div class="wh"><span class="wt2">${icon(s.ic,d.bi,'')}${esc(s.tt||d.n)}</span><span class="wc2"><button data-a="wcfg" aria-label="Configurar widget" title="Configurar">⚙</button><button data-a="wdel" aria-label="Remover widget" title="Remover">×</button></span></div><div class="wbd">${d.body(w)}</div><i class="rz" aria-hidden="true"></i></section>`}
-function wRestyle(w){const el=$(`#wg .w[data-id="${w.id}"]`);if(el)el.style.cssText=`left:${w.x}px;top:${w.y}px;width:${w.w}px;height:${w.h}px;z-index:${w.z};${wst(w)}`;fit()}
+ return`<section class="w g${anim?' in':''}" data-id="${esc(w.id)}" data-type="${w.type}" data-hd="${s.hd===0?0:1}" style="${wGeo(w)};z-index:${w.z};${wst(w)}"><div class="wh"><span class="wt2">${icon(s.ic,d.bi,'')}${esc(s.tt||d.n)}</span><span class="wc2"><button data-a="wcfg" aria-label="Configurar widget" title="Configurar">⚙</button><button data-a="whide" aria-label="Ocultar widget" title="Ocultar (volta em Configurações > Widgets)">&minus;</button><button data-a="wdel" aria-label="Remover widget" title="Remover">×</button></span></div><div class="wbd">${d.body(w)}</div><i class="rz" aria-hidden="true"></i></section>`}
+function wRestyle(w){const el=$(`#wg .w[data-id="${w.id}"]`);if(el)el.style.cssText=`${wGeo(w)};z-index:${w.z};${wst(w)}`;fit()}
 function widgets(anim){
- $('#wg').innerHTML=S.widgets.map(w=>wFrame(w,anim)).join('');
- [...S.widgets].sort((a,b)=>a.y-b.y||a.x-b.x).forEach((w,i)=>{const e=$(`#wg .w[data-id="${w.id}"]`);if(e)e.style.order=i});
+ const vis=S.widgets.filter(w=>!w.hid);if(FREE())[...vis].sort((a,b)=>a.y-b.y||a.x-b.x).forEach(G);
+ $('#wg').innerHTML=vis.map(w=>wFrame(w,anim)).join('');
+ [...vis].sort((a,b)=>a.y-b.y||a.x-b.x).forEach((w,i)=>{const e=$(`#wg .w[data-id="${w.id}"]`);if(e)e.style.order=i});
  fit();tick()}
 /* Atualiza só o conteúdo de um tipo (ou id) de widget, sem mexer no resto */
 function rw(t){
@@ -86,12 +98,13 @@ function rw(t){
   const sc=b.scrollTop;b.innerHTML=W[w.type].body(w);b.scrollTop=sc})}
 /* Mantém os widgets dentro da área visível (sem alterar o que está salvo) */
 function fit(){
- if(innerWidth<=700)return;const g=$('#wg'),gw=g.clientWidth,gh=g.clientHeight;
+ const g=$('#wg'),gw=g.clientWidth,gh=g.clientHeight;
+ if(SM()){if(!FREE())return;$$('#wg .w').forEach(e=>{const w=wById(e.dataset.id);if(!w)return;const q=G(w),ww=Math.min(q.w,gw);e.style.width=ww+'px';e.style.left=clamp(q.x,0,Math.max(0,gw-ww))+'px';e.style.top=clamp(q.y,0,Math.max(0,gh-40))+'px'});return}
  $$('#wg .w').forEach(e=>{const w=wById(e.dataset.id);if(!w)return;const ww=Math.min(w.w,gw);e.style.width=ww+'px';e.style.left=clamp(w.x,0,Math.max(0,gw-ww))+'px';e.style.top=clamp(w.y,0,Math.max(0,gh-40))+'px'})}
 addEventListener('resize',fit);
 function freeSpot(w,h){
  const g=$('#wg'),gw=g.clientWidth||innerWidth,gh=g.clientHeight||innerHeight;
- for(let y=10;y+h<=gh;y+=10)for(let x=10;x+w<=gw;x+=10)if(!S.widgets.some(o=>x<o.x+o.w+8&&x+w+8>o.x&&y<o.y+o.h+8&&y+h+8>o.y))return[x,y];
+ for(let y=10;y+h<=gh;y+=10)for(let x=10;x+w<=gw;x+=10)if(!S.widgets.some(o=>!o.hid&&x<o.x+o.w+8&&x+w+8>o.x&&y<o.y+o.h+8&&y+h+8>o.y))return[x,y];
  const n=S.widgets.length*24%240;return[20+n,20+n]}
 const topZ=()=>Math.max(0,...S.widgets.map(w=>w.z));
 function bringFront(w,el){if(w.z===topZ()&&S.widgets.filter(x=>x.z===w.z).length===1)return;w.z=topZ()+1;if(el)el.style.zIndex=w.z}
@@ -99,15 +112,19 @@ function bringFront(w,el){if(w.z===topZ()&&S.widgets.filter(x=>x.z===w.z).length
 /* ---- Arrastar e redimensionar (ponteiro: mouse, toque e caneta) ---- */
 $('#desk').addEventListener('pointerdown',e=>{
  const rz=e.target.closest('.rz'),h=e.target.closest('.wh');
- if((!rz&&!h)||S.l.lock||e.target.closest('.wc2')||e.button||innerWidth<=700)return;
+ if((!rz&&!h)||S.l.lock||e.target.closest('.wc2')||e.button||(SM()&&!FREE()))return;
  const el=(rz||h).closest('.w'),w=wById(el.dataset.id);if(!w)return;
  e.preventDefault();bringFront(w,el);
- const g=$('#wg'),gr=S.l.snap?Math.max(4,S.l.gap):1,sn=v=>Math.round(v/gr)*gr,d=W[w.type],sx=e.clientX,sy=e.clientY,ox=w.x,oy=w.y,ow=w.w,oh=w.h,t=rz||h;
+ const g=$('#wg'),gr=S.l.snap?Math.max(4,S.l.gap):1,sn=v=>Math.round(v/gr)*gr,d=W[w.type],q=G(w),sx=e.clientX,sy=e.clientY,ox=q.x,oy=q.y,ow=q.w,oh=q.h,t=rz||h,mw=Math.min(d.mw,g.clientWidth),mh=d.mh;
  t.setPointerCapture(e.pointerId);
  t.onpointermove=ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy;
-  if(rz){w.w=Math.max(d.mw,Math.min(sn(ow+dx),g.clientWidth-w.x));w.h=Math.max(d.mh,Math.min(sn(oh+dy),Math.max(d.mh,g.clientHeight-w.y)));el.style.width=w.w+'px';el.style.height=w.h+'px'}
-  else{w.x=clamp(sn(ox+dx),0,Math.max(0,g.clientWidth-w.w));w.y=clamp(sn(oy+dy),0,Math.max(0,g.clientHeight-40));el.style.left=w.x+'px';el.style.top=w.y+'px'}};
+  if(rz){q.w=Math.max(mw,Math.min(sn(ow+dx),g.clientWidth-q.x));q.h=Math.max(mh,Math.min(sn(oh+dy),Math.max(mh,g.clientHeight-q.y)));el.style.width=q.w+'px';el.style.height=q.h+'px'}
+  else{q.x=clamp(sn(ox+dx),0,Math.max(0,g.clientWidth-q.w));q.y=clamp(sn(oy+dy),0,Math.max(0,g.clientHeight-40));el.style.left=q.x+'px';el.style.top=q.y+'px'}};
  t.onpointerup=t.onpointercancel=()=>{t.onpointermove=t.onpointerup=t.onpointercancel=null;save();if(cur==='settings'&&sTab==='widgets')ren()}});
+
+/* ---- Visualização limpa: esconde os widgets só por enquanto (não é salvo) ---- */
+let CLEAN=0;
+function cleanView(on){CLEAN=on===undefined?!CLEAN:!!on;document.body.classList.toggle('clean',CLEAN);const b=$('#cleanb');if(b)b.hidden=!CLEAN;if(CLEAN){closePops();if(!$('#win').hidden)openApp('home')}}
 
 /* ---- Ações de widget ---- */
 let selW='';
@@ -117,12 +134,16 @@ Object.assign(A,{
  wdup:a=>{const w=wById(a.dataset.k);if(!w)return;const c=structuredClone(w);c.id=uid();c.x+=24;c.y+=24;c.z=topZ()+1;S.widgets.push(c);selW=c.id;save();widgets();ren()},
  wcfg:a=>{selW=a.closest('.w').dataset.id;sTab='widgets';openApp('settings')},
  wsel:a=>{selW=a.dataset.k;ren()},
+ whide:a=>{const id=a.dataset.k||a.closest('.w')?.dataset.id,w=wById(id);if(!w)return;if(w.hid)delete w.hid;else w.hid=1;save();widgets();if(cur==='settings')ren();toast(w.hid?'Widget oculto. Para mostrar, abra Configurações > Widgets.':'Widget visível')},
+ clean2:()=>cleanView(0),
+ wshowall:()=>{S.widgets.forEach(w=>{delete w.hid});save();widgets();ren();toast('Todos os widgets estão visíveis')},
  wz:a=>{const w=wById(a.dataset.k);if(!w)return;if(a.dataset.v==='front')w.z=topZ()+1;else{S.widgets.forEach(x=>x.z++);w.z=0}save();widgets();ren()},
  wst0:a=>{const w=wById(a.dataset.k);if(!w)return;w.st={};save();widgets();ren()},
  wclr:a=>{const w=wById(selW);if(!w)return;delete w.st[a.dataset.k];save();widgets();ren()},
- wgeo0:a=>{const w=wById(a.dataset.k),d=W[w.type];w.w=d.w;w.h=d.h;save();widgets();ren()},
- warr:()=>{const g=$('#wg'),gw=g.clientWidth||innerWidth,gap=Math.max(8,S.l.gap);let x=gap,y=gap,rh=0;
-  [...S.widgets].sort((a,b)=>a.y-b.y||a.x-b.x).forEach(w=>{if(x+w.w>gw&&x>gap){x=gap;y+=rh+gap;rh=0}w.x=x;w.y=y;x+=w.w+gap;rh=Math.max(rh,w.h)});save();widgets();toast('Widgets organizados')},
+ wgeo0:a=>{const w=wById(a.dataset.k),d=W[w.type];if(FREE())delete w.mg;else{w.w=d.w;w.h=d.h}save();widgets();ren()},
+ warr:()=>{const g=$('#wg'),gw=g.clientWidth||innerWidth,gap=Math.max(8,S.l.gap),fr=FREE();let x=gap,y=gap,rh=0;
+  if(fr)S.widgets.forEach(w=>{delete w.mg});
+  [...S.widgets].filter(w=>!w.hid).sort((a,b)=>a.y-b.y||a.x-b.x).forEach(w=>{if(fr){G(w);return}if(x+w.w>gw&&x>gap){x=gap;y+=rh+gap;rh=0}w.x=x;w.y=y;x+=w.w+gap;rh=Math.max(rh,w.h)});save();widgets();toast('Widgets organizados')},
  tadd:a=>{const c=a.closest('.w,#wbody'),i=c.querySelector('.ti');if(!i||!i.value.trim())return;todoAdd(i.value);const n=(c.matches('.w')?c:$('#wbody')).querySelector('.ti');if(n)n.focus()},
  tdel:a=>todoDel(a.dataset.k),
  ladd:a=>{const c=a.closest('.w'),n=c.querySelector('.ln').value.trim(),u=c.querySelector('.lu').value.trim();if(!n||!/^https?:\/\//i.test(u))return notify('Informe um nome e uma URL começando com http:// ou https://');S.links.push(cleanLink({n,u,k:'url'}));save();rw('links')},
